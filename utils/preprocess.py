@@ -92,7 +92,7 @@ def split_data(data):
     
     labels = ['toxic', 'severe_toxic', 'obscene', 'threat', 'insult', 'identity_hate']
     
-    X = data["lemmatized"]
+    X = data["lemmatized"].to_numpy().reshape(-1,)
     y = data[labels].to_numpy()
     
     X_train, X_val, y_train, y_val = train_test_split(X, y, test_size=0.2, random_state=42)
