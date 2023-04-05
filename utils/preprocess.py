@@ -10,12 +10,6 @@ nltk.download('wordnet')
 
 from nltk.stem import WordNetLemmatizer
 from sklearn.model_selection import train_test_split
-# from tensorflow import keras
-# from tensorflow.keras import models
-# from tensorflow.keras import layers
-# from keras.preprocessing.text import Tokenizer
-# from keras.preprocessing import sequence
-# from keras.utils import pad_sequences
 
 def clean(data):   
     print("-"*13)
