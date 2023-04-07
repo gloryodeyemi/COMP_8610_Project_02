@@ -4,6 +4,7 @@ from tensorflow.keras import layers
 from keras.preprocessing.text import Tokenizer
 from keras.preprocessing import sequence
 from keras.utils import pad_sequences
+from keras import backend as K
 
 import pickle
 import torch
@@ -58,7 +59,7 @@ class LSTM:
         print("----------------------")
         model.compile(optimizer='rmsprop',
                   loss='binary_crossentropy',
-                  metrics=['accuracy', keras.metrics.Precision(), keras.metrics.Recall()])
+                  metrics=['accuracy', keras.metrics.Precision(), keras.metrics.Recall(), keras.metrics.AUC()])
 
         print("Model compiled!")
 
@@ -70,7 +71,7 @@ class LSTM:
 
         history = model.fit(train_pad,
                         y_train,
-                        epochs=5,
+                        epochs=10,
                         batch_size=512,
                         validation_data=(val_pad, y_val))
         return history
@@ -81,17 +82,49 @@ class LSTM:
         plt.legend()
         plt.savefig(f'accuracy.png')
         plt.show()
+        
+    def plot_precision(self, history):
+        plt.plot(history.history['precision'], label='train')
+        plt.plot(history.history['val_precision'], label='test')
+        plt.legend()
+        plt.savefig(f'precision.png')
+        plt.show()
+        
+    def plot_recall(self, history):
+        plt.plot(history.history['recall'], label='train')
+        plt.plot(history.history['val_recall'], label='test')
+        plt.legend()
+        plt.savefig(f'recall.png')
+        plt.show()
+        
+    def plot_auc(self, history):
+        plt.plot(history.history['auc'], label='train')
+        plt.plot(history.history['val_auc'], label='test')
+        plt.legend()
+        plt.savefig(f'auc.png')
+        plt.show()
 
     # accuracy results
     def get_accuracy(self, model, X_val, y_val, X_train, y_train):    
         print("Results:")
         print("--------")
         train_scores = model.evaluate(X_train, y_train, verbose=False)
-        print("Training Accuracy: %.2f%%\n" % (train_scores[1] * 100))
+        print("Training accuracy: %.2f%%\n" % (train_scores[1] * 100))
         print("Training loss: %.2f%%\n" % (train_scores[0] * 100))
+        print("Training precision: %.2f%%\n" % (train_scores[2] * 100))
+        print("Training recall: %.2f%%\n" % (train_scores[3] * 100))
+#         print("Training f1_score: %.2f%%\n" % (train_scores[4] * 100))
+        print("Training auc: %.2f%%\n" % (train_scores[4] * 100))
+    
+        print("-"*15)
+        
         test_scores = model.evaluate(X_val, y_val, verbose=False)
         print("Validation accuracy: %.2f%%\n" % (test_scores[1] * 100))
         print("Validation loss: %.2f%%\n" % (test_scores[0] * 100))
+        print("Validation precision: %.2f%%\n" % (test_scores[2] * 100))
+        print("Validation recall: %.2f%%\n" % (test_scores[3] * 100))
+#         print("Validation f1_score: %.2f%%\n" % (test_scores[4] * 100))
+        print("Validation auc: %.2f%%\n" % (test_scores[4] * 100))
 
     def save_model(self, model):
         # save the model to disk
@@ -104,9 +137,10 @@ class LSTM:
         print("Model loaded!")
         return loaded_model
 
-    def make_predictions(self, model, test_pad, col_id, labels):
+    def make_predictions(self, model, test_pad, col_id, com_text, labels):
         y_pred = model.predict(test_pad)
         pred_result = pd.DataFrame({'id':col_id,
+                      'comment_text':com_text,
                       'toxic':y_pred[:,0],
                       'severe_toxic':y_pred[:,1],
                       'obscene':y_pred[:,2],

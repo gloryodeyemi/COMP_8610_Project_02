@@ -11,6 +11,39 @@ nltk.download('wordnet')
 from nltk.stem import WordNetLemmatizer
 from sklearn.model_selection import train_test_split
 
+def balance_class(data):
+    labels = list(data.columns.values)
+    labels = labels[2:]
+    toxic = data[data[labels].sum(axis=1) > 0]
+    clean = data[data[labels].sum(axis=1) == 0]
+    print("Before Undersampling")
+    print("--------------------")
+    print(f"Train data: {data.shape}")
+    print(f"Toxic data: {toxic.shape}")
+    print(f"Clean data: {clean.shape}")
+    print()
+
+    bal_train = pd.concat([
+      toxic,
+      clean.sample(17_000)
+    ]).reset_index(drop=True)
+    toxic = bal_train[bal_train[labels].sum(axis=1) > 0]
+    clean = bal_train[bal_train[labels].sum(axis=1) == 0]
+    print("After Undersampling")
+    print("-------------------")
+    print(f"Balance data: {bal_train.shape}")
+    print(f"Balance toxic data: {toxic.shape}")
+    print(f"Balance clean data: {clean.shape}")
+
+    return bal_train
+
+def generate_random(data, col, seed_num):
+    np.random.seed(seed_num)
+    n = np.random.randint(33225)
+    labels = data.iloc[n:n+1,2:8]
+    text = data[col][n]
+    return text, labels
+
 def clean(data):   
     print("-"*13)
     print("Cleaning data")
